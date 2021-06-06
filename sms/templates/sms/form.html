@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://smtpjs.com/v3/smtp.js"></script>
+  <title>שליחת משוב</title>
+</head>
+<style>
+  input {
+  width: 100%;
+  padding: 6px 10px;
+  margin: 3px 0;
+  box-sizing: border-box;
+  }
+  select {
+    width: 100%;
+  padding: 6px 10px;
+  margin: 3px 0;
+  box-sizing: border-box;
+  }
+  }
+</style>
+<body>
+  {%if services%}
+  <form id="form" action="{% url 'sms:send' %}" method="post">
+  {% csrf_token %}
+    <input type="password" id="password" name="password" placeholder="סיסמא" required><br>
+    <input type="text" id="fname" name="fname" placeholder="שם פרטי" required><br>
+    <input type="text" id="lname" name="lname" placeholder="שם משפחה" required><br>
+    <input type="tel" id="phone" name="phone" placeholder="טלפון (דוגמה:0541212121)" pattern="[0]{1}[0-9]{9}"
+      required><br>
+      <label for="service">בחר שירות:</label>
+      <select id="service" name="service" onchange="showOtherInput()">
+        {% for service in services %}
+        <option value="{{service}}">{{service}}</option>
+        {% endfor %}
+        <option value="other">אחר</option>
+      </select><br>
+      <div id="otherContainer" style="display: none">
+        <input type="text" id="otherName" placeholder="סוג שירות"><br>
+        <textarea id="otherMessage" rows="10" cols="30" placeholder="כתוב הודעה"></textarea>
+          <br>
+      </div>
+    <label for="sendTime">השהה את ההודעה למשך:</label>
+    <select id="sendTime" name="sendTime" onchange="showDelayInput()"><br>
+      <option value="0">ללא השהיה </option>
+      <option value="3">3 שעות </option>
+      <option value="6">6 שעות </option>
+      <option value="12">12 שעות </option>
+      <option value="24">24 שעות </option>
+      <option value="other">מותאם אישית</option>
+    </select><br>
+    <input type="number" id="hourInput" min="1" placeholder="מספר שעות להשהיה" style="display: none"><br>
+    <input type="submit" id="submit" name="submit" value="שלח">
+  </form>
+  {% endif%}
+  <script>
+    function showDelayInput() {
+      var sendTime = document.getElementById("sendTime").value
+      if (sendTime == "other") {
+        document.getElementById("hourInput").style.display = "block"
+      }
+      else {
+        document.getElementById("hourInput").style.display = "none"
+      }
+    };
+  
+    function showOtherInput() {
+      var service = document.getElementById("service").value
+      //console.log(service)
+      if (service == "other") {
+        document.getElementById("otherContainer").style.display = "block"
+      }
+      else {
+        document.getElementById("otherContainer").style.display = "none"
+      }
+    }
+  </script>
+</body>
+
+</html>

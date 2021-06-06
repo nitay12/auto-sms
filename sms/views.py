@@ -5,7 +5,7 @@ import requests
 from urllib.parse import quote
 
 from .models import Service
-
+#TODO: add message delay functionality
 def form(request):
     services = Service.objects.all
     context = {'services': services}
@@ -14,9 +14,13 @@ def send (request):
     service_name = request.POST['service']
     first_name = request.POST['fname']
     last_name = request.POST['lname']
+    phone = request.POST['phone']
     service = Service.objects.get(service_name=service_name)
     service_message = service.get_message()
-    message = quote("שלום, " + first_name + "\n" + service_message)
+    emp_name = service.get_employee()
+    emp_phone = service.get_employee_phone()
+    password = request.POST['password']
+    message = quote("שלום, " + first_name + "\n" + "זה "+ emp_name +"\n" + service_message)
     url = "https://cellactpro.net/GlobalSms/ExternalClient/GlobalAPI.asp"
     XMLString = "XMLString="\
         "%3CPALO%3E"\
@@ -30,11 +34,11 @@ def send (request):
         "%3CBODY%3E"\
         "%3CCONTENT%3E" + message + "%3C%2FCONTENT%3E"\
         "%3CDEST_LIST%3E"\
-        "%3CTO%3E%2B972547278511%3C%2FTO%3E"\
+        "%3CTO%3E " + phone + " %3C%2FTO%3E"\
         "%3C%2FDEST_LIST%3E"\
         "%3C%2FBODY%3E"\
         "%3COPTIONAL%3E"\
-        "%3CCALLBACK%3E%20%2B972546227127%3C%2FCALLBACK%3E"\
+        "%3CCALLBACK%3E" + emp_phone + "%3C%2FCALLBACK%3E"\
         "%3CSIGNATURE%2F%3E"\
         "%3C%2FOPTIONAL%3E"\
         "%3C%2FPALO%3E"
@@ -43,8 +47,12 @@ def send (request):
       'Cookie': 'ASPSESSIONIDQASBQCBQ=JBOAKHHDPJKCCKIOKJHGKBFC'
 
     }
-
-    response = requests.request("POST", url, headers=headers, data=XMLString)
-    if response.status_code == 200:
-        return HttpResponse(response.text)
-    return HttpResponse('Could not save data')
+    
+    if password == settings.AUTH_PASSWORD:
+        response = requests.request("POST", url, headers=headers, data=XMLString)
+        if response.status_code == 200:
+            if "Success" in response.text:
+                return HttpResponse("הודעה ל{} נשלחה בהצלחה".format(first_name))
+        return HttpResponse('Could not save data')
+    else:
+        return HttpResponse("הסיסמא אינה נכונה אנא נסה שוב")
